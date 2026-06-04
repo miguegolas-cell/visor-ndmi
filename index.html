@@ -1,30 +1,4 @@
-from pathlib import Path
-import os, zipfile, shutil
-
-# Extraer Layer0.png desde KMZ si es necesario
-kmz_path = Path("/mnt/data/ndmi.kmz")
-extract_dir = Path("/mnt/data/ndmi_kmz_extract_fullscreen")
-extract_dir.mkdir(exist_ok=True)
-
-with zipfile.ZipFile(kmz_path, "r") as z:
-    z.extractall(extract_dir)
-
-layer_path = extract_dir / "Layer0.png"
-if not layer_path.exists():
-    # fallback buscar en carpetas
-    candidates = list(Path("/mnt/data").glob("**/Layer0.png"))
-    if not candidates:
-        raise FileNotFoundError("No encuentro Layer0.png")
-    layer_path = candidates[0]
-
-north = 40.363559526968
-south = 38.534098589468
-east = 0.1249959139165868
-west = -1.679271175927163
-center_lat = (north + south) / 2
-center_lon = (east + west) / 2
-
-full_html = f"""<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="utf-8">
@@ -35,11 +9,9 @@ full_html = f"""<!DOCTYPE html>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
   <style>
-    * {{
-      box-sizing: border-box;
-    }}
+    * { box-sizing: border-box; }
 
-    html, body {{
+    html, body {
       width: 100%;
       height: 100%;
       margin: 0;
@@ -48,17 +20,17 @@ full_html = f"""<!DOCTYPE html>
       background: #eef2f3;
       color: #1f2d33;
       overflow: hidden;
-    }}
+    }
 
-    .visor-full {{
+    .visor-full {
       width: 100vw;
       height: 100vh;
       display: flex;
       flex-direction: column;
       background: #eef2f3;
-    }}
+    }
 
-    .banner {{
+    .banner {
       flex: 0 0 auto;
       background: linear-gradient(135deg, #263d46, #3f6f7a);
       color: #ffffff;
@@ -66,37 +38,37 @@ full_html = f"""<!DOCTYPE html>
       box-shadow: 0 3px 12px rgba(0,0,0,0.26);
       text-align: center;
       z-index: 1000;
-    }}
+    }
 
-    .banner h1 {{
+    .banner h1 {
       margin: 0;
       font-size: 24px;
       line-height: 1.2;
       letter-spacing: 0.3px;
-    }}
+    }
 
-    .banner p {{
+    .banner p {
       margin: 6px auto 0;
       max-width: 980px;
       font-size: 14px;
       line-height: 1.35;
       color: rgba(255,255,255,0.92);
-    }}
+    }
 
-    .map-wrap {{
+    .map-wrap {
       position: relative;
       flex: 1 1 auto;
       min-height: 0;
       width: 100%;
-    }}
+    }
 
-    #map {{
+    #map {
       width: 100%;
       height: 100%;
       background: #dfe7ea;
-    }}
+    }
 
-    .bottom-panel {{
+    .bottom-panel {
       flex: 0 0 auto;
       display: grid;
       grid-template-columns: minmax(260px, 1fr) minmax(260px, 420px);
@@ -106,38 +78,38 @@ full_html = f"""<!DOCTYPE html>
       border-top: 1px solid #d9e1e5;
       box-shadow: 0 -3px 12px rgba(0,0,0,0.12);
       z-index: 1000;
-    }}
+    }
 
     .info-panel,
-    .legend {{
+    .legend {
       background: #f7f9fa;
       border: 1px solid #d9e1e5;
       border-radius: 12px;
       padding: 10px 12px;
-    }}
+    }
 
     .info-panel h2,
-    .legend h2 {{
+    .legend h2 {
       margin: 0 0 7px;
       font-size: 15px;
       color: #223942;
-    }}
+    }
 
-    .info-panel p {{
+    .info-panel p {
       margin: 0 0 8px;
       font-size: 12.5px;
       line-height: 1.35;
       color: #4a5a61;
-    }}
+    }
 
-    .opacity-control {{
+    .opacity-control {
       padding: 8px 10px;
       background: #eef3f5;
       border-radius: 10px;
       border: 1px solid #cfdadd;
-    }}
+    }
 
-    .opacity-control label {{
+    .opacity-control label {
       display: flex;
       justify-content: space-between;
       gap: 10px;
@@ -145,83 +117,55 @@ full_html = f"""<!DOCTYPE html>
       font-weight: 700;
       color: #223942;
       margin-bottom: 6px;
-    }}
+    }
 
-    .opacity-control input {{
+    .opacity-control input {
       width: 100%;
       accent-color: #3f6f7a;
-    }}
+    }
 
-    .legend-grid {{
+    .legend-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 4px 10px;
-    }}
+    }
 
-    .legend-row {{
+    .legend-row {
       display: flex;
       align-items: center;
       gap: 7px;
       font-size: 12.5px;
       color: #263238;
       line-height: 1.2;
-    }}
+    }
 
-    .color-box {{
+    .color-box {
       width: 28px;
       height: 14px;
       border-radius: 4px;
       border: 1px solid rgba(0,0,0,0.22);
       flex: 0 0 auto;
-    }}
+    }
 
-    .note {{
+    .note {
       font-size: 11px;
       color: #607078;
       margin-top: 7px;
       line-height: 1.25;
-    }}
+    }
 
-    .leaflet-control-layers {{
-      font-size: 13px;
-    }}
+    .leaflet-control-layers { font-size: 13px; }
 
-    @media (max-width: 780px) {{
-      html, body {{
-        overflow: auto;
-      }}
-
-      .visor-full {{
-        min-height: 100vh;
-        height: auto;
-      }}
-
-      .banner {{
-        padding: 12px 10px;
-      }}
-
-      .banner h1 {{
-        font-size: 20px;
-      }}
-
-      .banner p {{
-        font-size: 12.5px;
-      }}
-
-      .map-wrap {{
-        height: 68vh;
-        min-height: 520px;
-        flex: none;
-      }}
-
-      .bottom-panel {{
-        grid-template-columns: 1fr;
-      }}
-
-      .legend-grid {{
-        grid-template-columns: 1fr;
-      }}
-    }}
+    @media (max-width: 780px) {
+      html, body { overflow: auto; }
+      .visor-full { min-height: 100vh; height: auto; }
+      .banner { padding: 12px 10px; }
+      .banner h1 { font-size: 20px; }
+      .banner p { font-size: 12.5px; }
+      .map-wrap { height: 68vh; min-height: 520px; flex: none; }
+      .bottom-panel { grid-template-columns: 1fr; }
+      .legend-grid { grid-template-columns: 1fr; }
+    }
   </style>
 </head>
 
@@ -242,9 +186,7 @@ full_html = f"""<!DOCTYPE html>
     <section class="bottom-panel">
       <div class="info-panel">
         <h2>Control de visualización</h2>
-        <p>
-          Cambia el mapa base, activa o desactiva la capa NDMI y ajusta la opacidad para ver mejor la ortofoto o el relieve.
-        </p>
+        <p>Cambia el mapa base, activa/desactiva la capa NDMI y ajusta la opacidad.</p>
 
         <div class="opacity-control">
           <label for="opacitySlider">
@@ -273,70 +215,55 @@ full_html = f"""<!DOCTYPE html>
   </div>
 
   <script>
-    const map = L.map('map', {{
-      center: [{center_lat}, {center_lon}],
+    const map = L.map('map', {
+      center: [39.448829058217996, -0.7771376310052881],
       zoom: 9,
       zoomControl: true
-    }});
+    });
 
-    const osm = L.tileLayer('https://{{s}}.tile.openstreetmap.org/{{z}}/{{x}}/{{y}}.png', {{
+    const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
       attribution: '&copy; OpenStreetMap contributors'
-    }}).addTo(map);
+    }).addTo(map);
 
-    const pnoa = L.tileLayer.wms('https://www.ign.es/wms-inspire/pnoa-ma', {{
+    const pnoa = L.tileLayer.wms('https://www.ign.es/wms-inspire/pnoa-ma', {
       layers: 'OI.OrthoimageCoverage',
       format: 'image/png',
       transparent: false,
       attribution: 'PNOA &copy; Instituto Geogr&aacute;fico Nacional'
-    }});
+    });
 
-    const bounds = [[{south}, {west}], [{north}, {east}]];
+    const bounds = [[38.534098589468, -1.679271175927163], [40.363559526968, 0.1249959139165868]];
 
-    const ndmiLayer = L.imageOverlay('Layer0.png', bounds, {{
+    const ndmiLayer = L.imageOverlay('Layer0.png', bounds, {
       opacity: 0.65,
       interactive: false
-    }}).addTo(map);
+    }).addTo(map);
 
     map.fitBounds(bounds);
 
-    const baseMaps = {{
+    const baseMaps = {
       'OpenStreetMap': osm,
       'PNOA / Ortofoto IGN': pnoa
-    }};
+    };
 
-    const overlayMaps = {{
+    const overlayMaps = {
       'NDMI / Moisture Index': ndmiLayer
-    }};
+    };
 
-    L.control.layers(baseMaps, overlayMaps, {{ collapsed: false }}).addTo(map);
-    L.control.scale({{ metric: true, imperial: false }}).addTo(map);
+    L.control.layers(baseMaps, overlayMaps, { collapsed: false }).addTo(map);
+    L.control.scale({ metric: true, imperial: false }).addTo(map);
 
     const slider = document.getElementById('opacitySlider');
     const opacityValue = document.getElementById('opacityValue');
 
-    slider.addEventListener('input', function(e) {{
+    slider.addEventListener('input', function(e) {
       const value = parseFloat(e.target.value);
       ndmiLayer.setOpacity(value);
       opacityValue.textContent = Math.round(value * 100) + '%';
-    }});
+    });
 
-    setTimeout(function() {{
-      map.invalidateSize();
-    }}, 300);
+    setTimeout(function() { map.invalidateSize(); }, 300);
   </script>
 </body>
 </html>
-"""
-
-out_dir = Path("/mnt/data/visor_ndmi_pantalla_completa")
-out_dir.mkdir(exist_ok=True)
-(out_dir / "index.html").write_text(full_html, encoding="utf-8")
-shutil.copy(layer_path, out_dir / "Layer0.png")
-
-zip_path = Path("/mnt/data/visor_ndmi_pantalla_completa.zip")
-with zipfile.ZipFile(zip_path, "w", compression=zipfile.ZIP_DEFLATED) as z:
-    z.write(out_dir / "index.html", arcname="index.html")
-    z.write(out_dir / "Layer0.png", arcname="Layer0.png")
-
-str(zip_path)
