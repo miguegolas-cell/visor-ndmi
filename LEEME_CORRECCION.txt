@@ -1,0 +1,13 @@
+CORRECCIÓN
+
+El index.html publicado en GitHub contiene texto tipo Markdown, no el HTML del visor.
+Debes sustituir el index.html actual por este index.html corregido.
+
+Sube a la raíz del repositorio estos dos archivos:
+- index.html
+- Layer0.png
+
+Después espera 1-2 minutos y abre:
+https://miguegolas-cell.github.io/NDMI/
+
+Si no se actualiza, fuerza recarga con Ctrl + F5.

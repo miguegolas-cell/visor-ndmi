@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>Índice NDMI - Moisture Index</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <style>
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #eef2f3;
+      color: #1f2d33;
+    }
+
+    .page {
+      width: 100%;
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 18px 12px 24px;
+    }
+
+    .banner {
+      background: linear-gradient(135deg, #263d46, #3f6f7a);
+      color: #ffffff;
+      border-radius: 16px 16px 0 0;
+      padding: 20px 24px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.22);
+      text-align: center;
+    }
+
+    .banner h1 {
+      margin: 0;
+      font-size: 26px;
+      line-height: 1.2;
+      letter-spacing: 0.3px;
+    }
+
+    .banner p {
+      margin: 8px auto 0;
+      max-width: 850px;
+      font-size: 15px;
+      line-height: 1.45;
+      color: rgba(255,255,255,0.92);
+    }
+
+    .map-card {
+      background: #ffffff;
+      border-radius: 0 0 16px 16px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+      overflow: hidden;
+      border: 1px solid rgba(0,0,0,0.08);
+      border-top: none;
+    }
+
+    #map {
+      width: 100%;
+      height: 650px;
+      min-height: 520px;
+      background: #dfe7ea;
+    }
+
+    .below {
+      display: grid;
+      grid-template-columns: 1fr 300px;
+      gap: 16px;
+      padding: 16px;
+      background: #ffffff;
+      border-top: 1px solid #d9e1e5;
+    }
+
+    .info-panel,
+    .legend {
+      background: #f7f9fa;
+      border: 1px solid #d9e1e5;
+      border-radius: 14px;
+      padding: 14px 16px;
+    }
+
+    .info-panel h2,
+    .legend h2 {
+      margin: 0 0 8px;
+      font-size: 16px;
+      color: #223942;
+    }
+
+    .info-panel p {
+      margin: 0 0 12px;
+      font-size: 13px;
+      line-height: 1.45;
+      color: #4a5a61;
+    }
+
+    .opacity-control {
+      margin-top: 10px;
+      padding: 12px;
+      background: #eef3f5;
+      border-radius: 12px;
+      border: 1px solid #cfdadd;
+    }
+
+    .opacity-control label {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      font-size: 13px;
+      font-weight: 700;
+      color: #223942;
+      margin-bottom: 8px;
+    }
+
+    .opacity-control input {
+      width: 100%;
+      accent-color: #3f6f7a;
+    }
+
+    .legend-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 7px 0;
+      font-size: 13px;
+      color: #263238;
+    }
+
+    .color-box {
+      width: 30px;
+      height: 16px;
+      border-radius: 4px;
+      border: 1px solid rgba(0,0,0,0.22);
+      flex: 0 0 auto;
+    }
+
+    .note {
+      font-size: 11.5px;
+      color: #607078;
+      margin-top: 10px;
+      line-height: 1.35;
+    }
+
+    @media (max-width: 780px) {
+      .page { padding: 10px; }
+      .banner { padding: 16px 14px; }
+      .banner h1 { font-size: 21px; }
+      #map { height: 560px; }
+      .below { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="page">
+    <section class="banner">
+      <h1>Índice NDMI / Moisture Index</h1>
+      <p>
+        Visor de humedad de la vegetación obtenido a partir de imagen Sentinel-2.
+        Valores altos indican mayor contenido de humedad; valores bajos indican menor humedad o posible estrés hídrico.
+      </p>
+    </section>
+
+    <section class="map-card">
+      <div id="map"></div>
+
+      <div class="below">
+        <div class="info-panel">
+          <h2>Control de visualización</h2>
+          <p>
+            Puedes cambiar el mapa base, activar o desactivar la capa NDMI y ajustar la opacidad para ver mejor el relieve, la ortofoto o el mapa base.
+          </p>
+
+          <div class="opacity-control">
+            <label for="opacitySlider">
+              <span>Opacidad de la capa NDMI</span>
+              <span id="opacityValue">65%</span>
+            </label>
+            <input id="opacitySlider" type="range" min="0" max="1" step="0.05" value="0.65">
+          </div>
+
+          <p style="margin-top:12px; margin-bottom:0;">
+            Fuente: Copernicus Sentinel-2 L2A. Capa visual exportada como KMZ.
+          </p>
+        </div>
+
+        <aside class="legend">
+          <h2>Leyenda orientativa</h2>
+          <div class="legend-row"><span class="color-box" style="background:#0011ff;"></span>Humedad alta</div>
+          <div class="legend-row"><span class="color-box" style="background:#00b7ff;"></span>Humedad media-alta</div>
+          <div class="legend-row"><span class="color-box" style="background:#00d66b;"></span>Situación intermedia</div>
+          <div class="legend-row"><span class="color-box" style="background:#fff200;"></span>Humedad baja</div>
+          <div class="legend-row"><span class="color-box" style="background:#ff9900;"></span>Muy bajo / estrés hídrico</div>
+          <div class="note">
+            Leyenda cualitativa. Para clases numéricas exactas hace falta un GeoTIFF analítico con valores NDMI reales.
+          </div>
+        </aside>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const map = L.map('map', {
+      center: [39.448829058217996, -0.7771376310052881],
+      zoom: 9,
+      zoomControl: true
+    });
+
+    const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    const pnoa = L.tileLayer.wms('https://www.ign.es/wms-inspire/pnoa-ma', {
+      layers: 'OI.OrthoimageCoverage',
+      format: 'image/png',
+      transparent: false,
+      attribution: 'PNOA &copy; Instituto Geogr&aacute;fico Nacional'
+    });
+
+    const bounds = [[38.534098589468, -1.679271175927163], [40.363559526968, 0.1249959139165868]];
+
+    const ndmiLayer = L.imageOverlay('Layer0.png', bounds, {
+      opacity: 0.65,
+      interactive: false
+    }).addTo(map);
+
+    map.fitBounds(bounds);
+
+    const baseMaps = {
+      'OpenStreetMap': osm,
+      'PNOA / Ortofoto IGN': pnoa
+    };
+
+    const overlayMaps = {
+      'NDMI / Moisture Index': ndmiLayer
+    };
+
+    L.control.layers(baseMaps, overlayMaps, { collapsed: false }).addTo(map);
+    L.control.scale({ metric: true, imperial: false }).addTo(map);
+
+    const slider = document.getElementById('opacitySlider');
+    const opacityValue = document.getElementById('opacityValue');
+
+    slider.addEventListener('input', function(e) {
+      const value = parseFloat(e.target.value);
+      ndmiLayer.setOpacity(value);
+      opacityValue.textContent = Math.round(value * 100) + '%';
+    });
+  </script>
+</body>
+</html>
