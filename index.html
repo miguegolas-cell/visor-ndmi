@@ -4,158 +4,46 @@
   <meta charset="utf-8">
   <title>Índice NDMI - Moisture Index</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
   <style>
     * { box-sizing: border-box; }
-
     html, body {
-      width: 100%;
-      height: 100%;
-      margin: 0;
-      padding: 0;
+      width: 100%; height: 100%; margin: 0; padding: 0;
       font-family: Arial, Helvetica, sans-serif;
-      background: #eef2f3;
-      color: #1f2d33;
-      overflow: hidden;
+      background: #eef2f3; color: #1f2d33; overflow: hidden;
     }
-
     .visor-full {
-      width: 100vw;
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
+      width: 100vw; height: 100vh; display: flex; flex-direction: column;
       background: #eef2f3;
     }
-
     .banner {
-      flex: 0 0 auto;
-      background: linear-gradient(135deg, #263d46, #3f6f7a);
-      color: #ffffff;
-      padding: 14px 22px;
-      box-shadow: 0 3px 12px rgba(0,0,0,0.26);
-      text-align: center;
-      z-index: 1000;
+      flex: 0 0 auto; background: linear-gradient(135deg, #263d46, #3f6f7a);
+      color: #ffffff; padding: 14px 22px; box-shadow: 0 3px 12px rgba(0,0,0,0.26);
+      text-align: center; z-index: 1000;
     }
-
-    .banner h1 {
-      margin: 0;
-      font-size: 24px;
-      line-height: 1.2;
-      letter-spacing: 0.3px;
-    }
-
-    .banner p {
-      margin: 6px auto 0;
-      max-width: 980px;
-      font-size: 14px;
-      line-height: 1.35;
-      color: rgba(255,255,255,0.92);
-    }
-
-    .map-wrap {
-      position: relative;
-      flex: 1 1 auto;
-      min-height: 0;
-      width: 100%;
-    }
-
-    #map {
-      width: 100%;
-      height: 100%;
-      background: #dfe7ea;
-    }
-
+    .banner h1 { margin: 0; font-size: 24px; line-height: 1.2; letter-spacing: 0.3px; }
+    .banner p { margin: 6px auto 0; max-width: 980px; font-size: 14px; line-height: 1.35; color: rgba(255,255,255,0.92); }
+    .map-wrap { position: relative; flex: 1 1 auto; min-height: 0; width: 100%; }
+    #map { width: 100%; height: 100%; background: #dfe7ea; }
     .bottom-panel {
-      flex: 0 0 auto;
-      display: grid;
-      grid-template-columns: minmax(260px, 1fr) minmax(260px, 420px);
-      gap: 12px;
-      padding: 10px 14px;
-      background: #ffffff;
-      border-top: 1px solid #d9e1e5;
-      box-shadow: 0 -3px 12px rgba(0,0,0,0.12);
-      z-index: 1000;
+      flex: 0 0 auto; display: grid; grid-template-columns: minmax(260px, 1fr) minmax(260px, 420px);
+      gap: 12px; padding: 10px 14px; background: #ffffff; border-top: 1px solid #d9e1e5;
+      box-shadow: 0 -3px 12px rgba(0,0,0,0.12); z-index: 1000;
     }
-
-    .info-panel,
-    .legend {
-      background: #f7f9fa;
-      border: 1px solid #d9e1e5;
-      border-radius: 12px;
-      padding: 10px 12px;
+    .info-panel, .legend {
+      background: #f7f9fa; border: 1px solid #d9e1e5; border-radius: 12px; padding: 10px 12px;
     }
-
-    .info-panel h2,
-    .legend h2 {
-      margin: 0 0 7px;
-      font-size: 15px;
-      color: #223942;
-    }
-
-    .info-panel p {
-      margin: 0 0 8px;
-      font-size: 12.5px;
-      line-height: 1.35;
-      color: #4a5a61;
-    }
-
-    .opacity-control {
-      padding: 8px 10px;
-      background: #eef3f5;
-      border-radius: 10px;
-      border: 1px solid #cfdadd;
-    }
-
-    .opacity-control label {
-      display: flex;
-      justify-content: space-between;
-      gap: 10px;
-      font-size: 12.5px;
-      font-weight: 700;
-      color: #223942;
-      margin-bottom: 6px;
-    }
-
-    .opacity-control input {
-      width: 100%;
-      accent-color: #3f6f7a;
-    }
-
-    .legend-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 4px 10px;
-    }
-
-    .legend-row {
-      display: flex;
-      align-items: center;
-      gap: 7px;
-      font-size: 12.5px;
-      color: #263238;
-      line-height: 1.2;
-    }
-
-    .color-box {
-      width: 28px;
-      height: 14px;
-      border-radius: 4px;
-      border: 1px solid rgba(0,0,0,0.22);
-      flex: 0 0 auto;
-    }
-
-    .note {
-      font-size: 11px;
-      color: #607078;
-      margin-top: 7px;
-      line-height: 1.25;
-    }
-
+    .info-panel h2, .legend h2 { margin: 0 0 7px; font-size: 15px; color: #223942; }
+    .info-panel p { margin: 0 0 8px; font-size: 12.5px; line-height: 1.35; color: #4a5a61; }
+    .opacity-control { padding: 8px 10px; background: #eef3f5; border-radius: 10px; border: 1px solid #cfdadd; }
+    .opacity-control label { display: flex; justify-content: space-between; gap: 10px; font-size: 12.5px; font-weight: 700; color: #223942; margin-bottom: 6px; }
+    .opacity-control input { width: 100%; accent-color: #3f6f7a; }
+    .legend-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 10px; }
+    .legend-row { display: flex; align-items: center; gap: 7px; font-size: 12.5px; color: #263238; line-height: 1.2; }
+    .color-box { width: 28px; height: 14px; border-radius: 4px; border: 1px solid rgba(0,0,0,0.22); flex: 0 0 auto; }
+    .note { font-size: 11px; color: #607078; margin-top: 7px; line-height: 1.25; }
     .leaflet-control-layers { font-size: 13px; }
-
     @media (max-width: 780px) {
       html, body { overflow: auto; }
       .visor-full { min-height: 100vh; height: auto; }
@@ -168,35 +56,22 @@
     }
   </style>
 </head>
-
 <body>
   <div class="visor-full">
     <section class="banner">
       <h1>Índice NDMI / Moisture Index</h1>
-      <p>
-        Visor de humedad de la vegetación obtenido a partir de imagen Sentinel-2.
-        Valores altos indican mayor contenido de humedad; valores bajos indican menor humedad o posible estrés hídrico.
-      </p>
+      <p>Visor de humedad de la vegetación sobre terreno forestal. Fondo topográfico con relieve y topónimos.</p>
     </section>
-
-    <div class="map-wrap">
-      <div id="map"></div>
-    </div>
-
+    <div class="map-wrap"><div id="map"></div></div>
     <section class="bottom-panel">
       <div class="info-panel">
         <h2>Control de visualización</h2>
-        <p>Cambia el mapa base, activa/desactiva la capa NDMI y ajusta la opacidad.</p>
-
+        <p>El visor abre con mapa topográfico con relieve y topónimos. Puedes cambiar a PNOA, OpenStreetMap o relieve sombreado.</p>
         <div class="opacity-control">
-          <label for="opacitySlider">
-            <span>Opacidad de la capa NDMI</span>
-            <span id="opacityValue">65%</span>
-          </label>
+          <label for="opacitySlider"><span>Opacidad de la capa NDMI</span><span id="opacityValue">65%</span></label>
           <input id="opacitySlider" type="range" min="0" max="1" step="0.05" value="0.65">
         </div>
       </div>
-
       <aside class="legend">
         <h2>Leyenda orientativa</h2>
         <div class="legend-grid">
@@ -207,62 +82,53 @@
           <div class="legend-row"><span class="color-box" style="background:#0000ff;"></span>Húmedo</div>
           <div class="legend-row"><span class="color-box" style="background:#000080;"></span>Muy húmedo</div>
         </div>
-        <div class="note">
-          Leyenda cualitativa. Para clases numéricas exactas hace falta un GeoTIFF analítico con valores NDMI reales.
-        </div>
+        <div class="note">Leyenda cualitativa. Para clases numéricas exactas hace falta un GeoTIFF analítico con valores NDMI reales.</div>
       </aside>
     </section>
   </div>
-
   <script>
-    const map = L.map('map', {
-      center: [39.448829058217996, -0.7771376310052881],
-      zoom: 9,
-      zoomControl: true
-    });
+    const map = L.map('map', { center: [39.448829058217996, -0.7771376310052881], zoom: 9, zoomControl: true });
+
+    const esriTopo = L.tileLayer(
+      'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}',
+      { maxZoom: 19, attribution: 'Tiles &copy; Esri' }
+    ).addTo(map);
+
+    const hillshade = L.tileLayer(
+      'https://server.arcgisonline.com/ArcGIS/rest/services/Elevation/World_Hillshade/MapServer/tile/{z}/{y}/{x}',
+      { maxZoom: 16, attribution: 'Hillshade &copy; Esri' }
+    );
 
     const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19,
-      attribution: '&copy; OpenStreetMap contributors'
-    }).addTo(map);
+      maxZoom: 19, attribution: '&copy; OpenStreetMap contributors'
+    });
 
     const pnoa = L.tileLayer.wms('https://www.ign.es/wms-inspire/pnoa-ma', {
-      layers: 'OI.OrthoimageCoverage',
-      format: 'image/png',
-      transparent: false,
+      layers: 'OI.OrthoimageCoverage', format: 'image/png', transparent: false,
       attribution: 'PNOA &copy; Instituto Geogr&aacute;fico Nacional'
     });
 
     const bounds = [[38.534098589468, -1.679271175927163], [40.363559526968, 0.1249959139165868]];
-
-    const ndmiLayer = L.imageOverlay('Layer0.png', bounds, {
-      opacity: 0.65,
-      interactive: false
-    }).addTo(map);
-
+    const ndmiLayer = L.imageOverlay('Layer0.png', bounds, { opacity: 0.65, interactive: false }).addTo(map);
     map.fitBounds(bounds);
 
     const baseMaps = {
-      'OpenStreetMap': osm,
-      'PNOA / Ortofoto IGN': pnoa
+      'Topográfico con relieve y topónimos': esriTopo,
+      'Relieve sombreado': hillshade,
+      'PNOA / Ortofoto IGN': pnoa,
+      'OpenStreetMap': osm
     };
-
-    const overlayMaps = {
-      'NDMI / Moisture Index': ndmiLayer
-    };
-
+    const overlayMaps = { 'NDMI / Moisture Index': ndmiLayer };
     L.control.layers(baseMaps, overlayMaps, { collapsed: false }).addTo(map);
     L.control.scale({ metric: true, imperial: false }).addTo(map);
 
     const slider = document.getElementById('opacitySlider');
     const opacityValue = document.getElementById('opacityValue');
-
     slider.addEventListener('input', function(e) {
       const value = parseFloat(e.target.value);
       ndmiLayer.setOpacity(value);
       opacityValue.textContent = Math.round(value * 100) + '%';
     });
-
     setTimeout(function() { map.invalidateSize(); }, 300);
   </script>
 </body>
