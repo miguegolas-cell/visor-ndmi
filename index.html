@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <style>
     * { box-sizing: border-box; }
     html, body {
@@ -44,6 +45,36 @@
     .color-box { width: 28px; height: 14px; border-radius: 4px; border: 1px solid rgba(0,0,0,0.22); flex: 0 0 auto; }
     .note { font-size: 11px; color: #607078; margin-top: 7px; line-height: 1.25; }
     .leaflet-control-layers { font-size: 13px; }
+
+    .download-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .download-btn {
+      appearance: none;
+      border: 0;
+      border-radius: 10px;
+      padding: 9px 12px;
+      background: #263d46;
+      color: #ffffff;
+      font-size: 12.5px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.18);
+    }
+
+    .download-btn:hover {
+      background: #3f6f7a;
+    }
+
+    .download-btn:disabled {
+      opacity: 0.6;
+      cursor: wait;
+    }
+
     @media (max-width: 780px) {
       html, body { overflow: auto; }
       .visor-full { min-height: 100vh; height: auto; }
@@ -70,6 +101,11 @@
         <div class="opacity-control">
           <label for="opacitySlider"><span>Opacidad de la capa NDMI</span><span id="opacityValue">65%</span></label>
           <input id="opacitySlider" type="range" min="0" max="1" step="0.05" value="0.65">
+        </div>
+
+        <div class="download-buttons">
+          <button class="download-btn" id="downloadNdmiBtn" type="button">Descargar capa NDMI</button>
+          <button class="download-btn" id="captureMapBtn" type="button">Descargar vista actual</button>
         </div>
       </div>
       <aside class="legend">
@@ -100,11 +136,12 @@
     );
 
     const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19, attribution: '&copy; OpenStreetMap contributors'
+      maxZoom: 19, crossOrigin: true, attribution: '&copy; OpenStreetMap contributors'
     });
 
     const pnoa = L.tileLayer.wms('https://www.ign.es/wms-inspire/pnoa-ma', {
       layers: 'OI.OrthoimageCoverage', format: 'image/png', transparent: false,
+      crossOrigin: true,
       attribution: 'PNOA &copy; Instituto Geogr&aacute;fico Nacional'
     });
 
@@ -129,6 +166,57 @@
       ndmiLayer.setOpacity(value);
       opacityValue.textContent = Math.round(value * 100) + '%';
     });
+
+    const downloadNdmiBtn = document.getElementById('downloadNdmiBtn');
+    const captureMapBtn = document.getElementById('captureMapBtn');
+
+    downloadNdmiBtn.addEventListener('click', function() {
+      const link = document.createElement('a');
+      link.href = 'Layer0.png';
+      link.download = 'NDMI_Valencia_Forestal.png';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    });
+
+    captureMapBtn.addEventListener('click', async function() {
+      captureMapBtn.disabled = true;
+      const oldText = captureMapBtn.textContent;
+      captureMapBtn.textContent = 'Generando imagen...';
+
+      try {
+        map.invalidateSize();
+
+        const mapElement = document.getElementById('map');
+
+        const canvas = await html2canvas(mapElement, {
+          useCORS: true,
+          allowTaint: false,
+          backgroundColor: null,
+          logging: false,
+          scale: 2
+        });
+
+        const link = document.createElement('a');
+        link.download = 'Vista_actual_NDMI_Valencia.png';
+        link.href = canvas.toDataURL('image/png');
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+      } catch (error) {
+        alert(
+          'No se ha podido generar la imagen completa. ' +
+          'Algunos mapas base externos pueden bloquear la descarga por permisos CORS. ' +
+          'Prueba con OpenStreetMap o descarga solo la capa NDMI.'
+        );
+        console.error(error);
+      } finally {
+        captureMapBtn.disabled = false;
+        captureMapBtn.textContent = oldText;
+      }
+    });
+
     setTimeout(function() { map.invalidateSize(); }, 300);
   </script>
 </body>
